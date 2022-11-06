@@ -5,33 +5,9 @@ from flaskr.movieDBapi import api_home
 
 
 #@app.route('/home_page/<userID>', methods=('GET', 'POST'))
-def home_page(userID):
-    # Poster url 
-    BASE_URL    = "http://image.tmdb.org/t/p/"
-    POSTER_SIZE = "w500"
-
-    # api call to get trending movies
-    trending = api_home()["results"][:9]
-
-    # prepare movie data for display
-    movieDisplay = []
-    for movie in trending:
-        temp = {    "title"     : movie["title"],
-                    "poster"    : BASE_URL + POSTER_SIZE + movie["poster_path"] }
-
-        movieDisplay.append(temp)
-
-    # prepare friends list for display [id, username]
-    user_friends = [    ["admin",   1], 
-                        ["Andrew",  2],
-                        ["Calvin",  3],
-                        ["Joseph",  4],
-                        ["Brenden", 5],
-                        ["Derrick", 6],
-                        ["Benas",   7]  ]
-
-    # display page
-    return render_template('home_page/home_page.html', movieDisplay=movieDisplay, user_friends=user_friends)
+def movie_page():
+    
+    return render_template('home_page/movie_page.html')
 
 
 
@@ -54,6 +30,3 @@ sample api output:
     "vote_average":8.145,
     "vote_count":190
 '''
-
-
-
