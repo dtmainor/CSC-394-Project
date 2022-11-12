@@ -28,9 +28,23 @@ def api_query(query):
     first_response  = requests.get(endpoint)
     response_list   = first_response.json()
 
-    print(f'query of "{query}" sent to the api')
+    #print(f'query of "{query}" sent to the api')
 
     return response_list
+
+
+
+def genre_query():
+
+    endpoint = "https://api.themoviedb.org/3/genre/movie/list?api_key=f059b4ab8738e8777362529e74ffb62a&language=en-US"
+
+    # returns a dictionary
+    first_response  = requests.get(endpoint)
+    response_list   = first_response.json()
+
+    return response_list
+
+
 
 
 
@@ -90,9 +104,26 @@ def api_movie_page(movieID):
     api_key = "?api_key=f059b4ab8738e8777362529e74ffb62a"
     lang = "&language=en-US"
 
-    endpoint = base + movieID + api_key + lang
+    endpoint = base + str(movieID) + api_key + lang
 
     first_response = requests.get(endpoint)
     response_list = first_response.json()
 
     return response_list
+
+def home_search():
+
+    if request.method == "POST":
+        
+        search_term = request.form["searched"]
+
+        base        = "https://api.themoviedb.org/3/search/movie?api_key="
+        api_key     = "f059b4ab8738e8777362529e74ffb62a"
+        search_url  = base + api_key
+
+        endpoint = search_url + '&query=' + search_term
+
+        first_response = requests.get(endpoint)
+        response_list = first_response.json()
+
+        return response_list

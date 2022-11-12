@@ -51,6 +51,9 @@
 /* footer */
 .my-footer {
     background: #eee;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
     width: 100%;
     height: 200px;
 }
@@ -182,7 +185,7 @@
 .user-page-statistics {
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
     display: flex;
-    flex-grow: 1;
+    flex: 1 2 15%;
     flex-direction: column;
     justify-content: flex-start;
     padding: 0 1.0rem;
@@ -215,13 +218,8 @@
 
 /* User Watch Lists */
 .user_watch_lists {
-    /*
-    width: 60%;
-    border: solid 1px;
-    */
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
-    flex-grow: 2;
-    
+    flex: 2 1 65%;
 }
 .user_watch_lists > h3 {
     padding: 0 1.0rem;
@@ -233,11 +231,8 @@
     gap: 1.0rem;
 }
 .list_preview_wrapper {
+    display: flex;
     padding: 1.0rem;
-
-    display: grid;
-    justify-content: space-between;
-    grid-template-columns: repeat(2, 1fr);   
     gap: 1.0rem;
 }
 .list_preview {
@@ -337,11 +332,15 @@
 --------------------------------------------------------------------------- */
 .home-search{
     background-color: transparent;
-    border: 2px solid;
+    width: 50%;
+    border: 1px solid;
     padding: 0.5rem 1rem;
     border-radius: 50px;
     font-size: 1rem;
     font-family: inherit;
+    align-self: center;
+    box-shadow: 0.2px 4px 5px rgba(0, 0, 0, 0.1);
+    display: inline;
 }
 
 .home-main{
@@ -358,10 +357,65 @@
 }
 
 .home-movie img{
-    width: 100%;
+    min-width: 100%;
 }
 
+.home-search-drop {
+    /* border: dashed; */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 80px;
+}
 
+/* Dropdown Button */
+.dropbtn {
+    background-color: rgba(0,122,255); 
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: 2px black;
+    box-shadow: 0.2px 4px 5px rgba(0, 0, 0, 0.1);
+    width: 80px;
+  }
+  
+  /* The container <div> - needed to position the dropdown content */
+  .dropdown {
+    position: absolute;
+    right: 15%;
+    bottom: 80px;
+    width: 80px;
+    background-color: #3e8e41;
+    float: right;
+  }
+  
+  /* Dropdown Content (Hidden by Default) */
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+
+  }
+  
+  /* Links inside the dropdown */
+  .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  /* Change color of dropdown links on hover */
+  .dropdown-content a:hover {background-color: #ddd;}
+  
+  /* Show the dropdown menu on hover */
+  .dropdown:hover .dropdown-content {display: block;}
+  
+  /* Change the background color of the dropdown button when the dropdown content is shown */
+  .dropdown:hover .dropbtn {background-color: #3e8e41;}
 
 
 /* Movie Page
@@ -375,6 +429,8 @@
     margin: 30px;
     text-decoration: none;
     color: black;
+    position: relative;
+    left: 100px;
 }
 
 .movie-page-overview-container {
@@ -387,15 +443,23 @@
     padding: 20px;
     text-decoration: none;
     color: black;
+    background-color: white;
     position: relative;
-    left: 325px;
+    left: 425px;
     bottom: 480px;
+    opacity: 0.75;
+    filter: alpha(opacity=50);
+}
+
+.movie-page-overview-container p{
+    color: black;
+    opacity: 1;
 }
 
 .movie-page-add-button {
     position: relative;
     bottom: 500px;
-    left: 500px;
+    left: 600px;
     background-color: rgba(0,122,255);
     color: white;
     width: 100px;
@@ -407,7 +471,30 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.movie-page-content-container {
+    /* background-color: blue; */
+    height: 600px;
+    width: 100%;
+    margin-left: 0%;
+    margin-top: 0%;
+}
 
+.movie-page-extra-container {
+    /* background-color: red; */
+    height: 300px;
+    width: 100%;
+
+}
+
+/* .box {
+    height: 600px;
+    width: 100%;
+    margin-left: 0%;
+    margin-top: 0%;
+    background-image: url({{movieDisplay[11]}});
+    background-size: 100%;
+    filter: blur(5px);
+} */
 
 
 
