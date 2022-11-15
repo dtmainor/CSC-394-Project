@@ -1,6 +1,7 @@
 from flaskr.db import get_db, close_db
 from flaskr.movieDBapi import api_movie_page
 
+
 '''
 Contains:
     
@@ -50,8 +51,8 @@ def get_poster(movie_id):
     poster_path = cur.fetchone()
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
     if len(poster_path) == 0: return ""
 
@@ -78,8 +79,8 @@ def get_watch_list_statistics(list_id):
     general_list_statistics = cur.fetchone()
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
     
     return [general_list_info, general_list_statistics]
 
@@ -125,8 +126,8 @@ def get_general_user_statistics(user_ids):
         user_statistics_dict[userID] = [general_list_info, general_list_statistics]
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
     # return the dict
     return user_statistics_dict
@@ -176,8 +177,8 @@ def get_general_movie_list(user_ids):
         movie_list_dict[userID] = general_list_movies
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
     # return the dict
     return movie_list_dict
@@ -291,8 +292,8 @@ def add_movie_to_list(movie_dictionary):
         db.commit()
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
     # maybe add a success/failure feedback message
     return None
@@ -329,8 +330,8 @@ def send_friend_request(sender_id, receiver_id):
         resolve_friend_request(receiver_id, sender_id, 1)
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
     # maybe add a success/failure feedback message
     return None
@@ -363,8 +364,150 @@ def resolve_friend_request(sender_id, receiver_id, answer):
     db.commit()
 
     # close the cursor and db connection
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
     # maybe add a success/failure feedback message
     return None
+
+
+
+
+def remove_friend(user_id, other_id):
+    # open db connection
+    db = get_db(); cur = db.cursor()
+
+    cur.execute(  f"DELETE FROM friends WHERE \
+                    (friend_1_id = { user_id} AND friend_2_id = {other_id}) OR \
+                    (friend_1_id = {other_id} AND friend_2_id = { user_id});")
+    db.commit()
+
+    # close the cursor and db connection
+    cur.close()#; db.close()
+
+
+
+
+
+
+
+
+def get_friends_list(user_id):
+    # return list
+    friends_list = []
+    
+    # open db connection
+    db = get_db(); cur = db.cursor()
+
+    # check if the movie is already in the movies_list table
+    cur.execute(f"SELECT * FROM friends WHERE friend_1_id = {user_id} OR friend_2_id = {user_id};")
+    user_friends = cur.fetchall()
+
+    for friend in user_friends:
+        if friend[0] != user_id:
+            cur.execute(f"SELECT * FROM all_users WHERE id = {friend[0]};")
+            friend_row = cur.fetchone()
+            friends_list.append( [friend_row[1], friend[0]] )
+        else:
+            cur.execute(f"SELECT * FROM all_users WHERE id = {friend[1]};")
+            friend_row = cur.fetchone()
+            friends_list.append( [ friend_row[1], friend[1]] )
+
+    # close the cursor and db connection
+    cur.close()#; db.close()
+
+    return friends_list
+
+
+def get_relationship(user_id, other_id):
+    '''
+    0 = not friends, no requests
+    1 = friends
+    2 = outgoing friend request
+    3 = incoming friend request
+    '''
+    # open db connection
+    db = get_db(); cur = db.cursor()
+
+    # check if already friends
+    # -------------------------
+    cur.execute(f"SELECT * FROM friends WHERE friend_1_id = {user_id} AND friend_2_id = {other_id};")
+    user_friends = cur.fetchall()
+
+    cur.execute(f"SELECT * FROM friends WHERE friend_1_id = {other_id} AND friend_2_id = {user_id};")
+    user_friends_2 = cur.fetchall()
+
+    if len(user_friends) > 0 or len(user_friends_2) > 0:
+        cur.close()
+        return 1
+
+
+    # check if pending friend request 
+    # --------------------------------
+    cur.execute(f"SELECT * FROM friend_requests WHERE sender_id = {user_id} AND receiver_id = {other_id};")
+    user_friends = cur.fetchall()
+    if len(user_friends) > 0:
+        cur.close()
+        return 2
+
+    cur.execute(f"SELECT * FROM friend_requests WHERE sender_id = {other_id} AND receiver_id = {user_id};")
+    user_friends = cur.fetchall()
+    if len(user_friends) > 0:
+        cur.close()
+        return 3
+
+
+    # close the cursor and db connection
+    cur.close()
+
+    return 0
+
+
+def update_bio(new_bio, user_id):
+    # open db connection
+    db = get_db(); cur = db.cursor()
+    
+    cur.execute(  f"UPDATE movies_list_info SET list_description = '{new_bio}' \
+                    WHERE owner_id = {user_id} AND list_name = 'general';"      )
+    db.commit()
+
+    # close the cursor and db connection
+    cur.close()
+
+
+
+def get_friend_requests(user_id):
+    incoming = []
+    outgoing = []
+
+    # open db connection
+    db = get_db(); cur = db.cursor()
+
+    cur.execute(f"SELECT * FROM friend_requests WHERE receiver_id = {user_id};")
+    incoming_requests = cur.fetchall()
+    for request in incoming_requests:
+        cur.execute(f"SELECT username FROM all_users WHERE id = {request[0]};")
+        sender_username = cur.fetchone()
+        formatted_date  = request[2].strftime("%Y-%m-%d %H:%M:%S")
+
+        incoming.append( (request[0], request[1], request[2], sender_username[0], formatted_date) )
+
+
+    cur.execute(f"SELECT * FROM friend_requests WHERE sender_id = {user_id};")
+    outgoing_requests = cur.fetchall()
+    for request in outgoing_requests: 
+        cur.execute(f"SELECT username FROM all_users WHERE id = {request[1]};")
+        receiver_username = cur.fetchone()
+        formatted_date    = request[2].strftime("%Y-%m-%d %H:%M:%S")
+
+        outgoing.append( (request[0], request[1], request[2], receiver_username[0], formatted_date) )
+
+    # close the cursor and db connection
+    cur.close()
+
+    friend_requests = { "incoming_requests" : incoming, 
+                        "outgoing_requests" : outgoing     }
+
+    return friend_requests
+
+

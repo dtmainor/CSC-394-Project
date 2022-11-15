@@ -6,22 +6,30 @@
 
 {% block content %}
 
-<!--
-    ideas to add:
-        * recent updates (display previous 3 shows/movies added)
-        * statistics
-            - movies watched
-            - shows watched
-            - average rating
-
---> 
 
 <div class="user_page_VStack">
-    
+
     <div class="user-page-item"> 
 
         <!-- User Bio -->
-        <div class="user_page_bio"> <p> {{ user_bio }} </p>  </div>
+        <div class="user_page_bio"> 
+            <p id="user_bio_box"> {{ page_info["user_bio"] }} </p>
+
+            {% if g.user is not none %}
+                {% if g.user[0]|int == this_user[0]|int %}
+                <form   hx-post="{{ url_for('modal_form_edit_bio') }}"
+                        hx-target="#modals-here" 
+                        hx-trigger="click"
+                        hx-swap="innerHTML"
+                >
+                    <button type="submit" data-toggle="modal" data-target="#myModal"> Edit Bio </button>
+                    <input type="hidden" name="current_bio" value="{{ page_info['user_bio'] }}">
+                </form>
+                {% endif %}
+            {% endif %}
+        </div>
+
+
 
         <!-- This will create a pie chart comparing the number of similar and different movies watched by the current user and a friend -->
         <div id="userComparisonChart" class="user_pie_chart">
@@ -92,17 +100,25 @@
 
     <!-- Socials -->
     <div class="user_page_socials">
-        <p> Friends:   {{ 25 }} </p>
-        <p> Followers: {{ 20 }} </p>
-        <button type="submit"> Add Friend </button>
-        <button type="submit"> Edit Bio </button>
-        <!-- button for user to edit Bio (No Functionality yet)-->
+        <p> Friends: {{ page_info["num_friends"] }} </p>
+        
+        {% if g.user is not none %}
+            {% if g.user[0]|int != this_user[0]|int %}
+                {{ friends_button | safe }}
+            {% endif %}
+        {% endif %}
+    
     </div>
+
+
+
 
 
 
     <!-- User Page Content -->
     <div class="user_page_HStack">
+
+
 
         <!-- User Statistics -->
         <div class="user-page-statistics">
@@ -122,6 +138,8 @@
         
         </div>
 
+
+
         <!-- Watch List Display -->
         <div class="user_watch_lists">
             <div class="watch_lists_info">
@@ -130,34 +148,40 @@
                 Only show the edit buttons if the one viewing this user page is logged in as the owner
                     the users id (if logged in):    {{ g.user[0]    }}
                     id of the user page:            {{ this_user[0] }}
-
-                Later on I want to give the modal dialogue the user id so it can see the user's data (movies already in this list, etc)
-                    The URL would need to be: /user/<userID>/modal
-                    So:
-                        hx-get="/user/{{g.user[0]}}/modal"
                 -->
                 {% if g.user is not none %}
                     {% if g.user[0]|int == this_user[0]|int %}
-                    
-                    <button 
-                        hx-get="/user/modal" 
-                        hx-target="#modals-here" 
-                        hx-trigger="click"
-                        hx-swap="innerHTML"
-                        > Create New Watch List
-                    </button>
-
+                    <form   hx-post="{{ url_for('modal_form_create_watch_list') }}"
+                            hx-target="#modals-here" 
+                            hx-swap="innerHTML"
+                        >
+                        <button type="submit" data-toggle="modal" data-target="#myModal"> Create New Watch List </button>
+                    </form>
                     {% endif %}
                 {% endif %}
             </div>
-            
-            <div class="list_preview_wrapper">
+
+
+
+            <style>
+                .list_preview_wrapper2 {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+
+                    gap: 1.5rem;
+                    padding: 0.0rem 1.5rem 1.5rem 1.5rem;
+                }
+            </style>
+            <div class="list_preview_wrapper2">
                 {% for watch_list in user_lists %}
                     {{ watch_list_card(watch_list[0]) | safe }}
                 {% endfor %}
             </div>
 
+
         </div>
+
+
 
         <!-- User Statistics -->
         <div class="user-page-statistics">
@@ -168,13 +192,12 @@
                 {% for entry in user_comparison %}
 
                 <div class="statistics-spacer">
-                <li class="statistics-label"> {{ entry[0] }} <li>
-                <li class="statistics-item" > {{ entry[1] }} <li>
+                <li class="statistics-label"> {{ entry[0] }} 
+                <li class="statistics-item" > {{ entry[1] }} 
                 </div>
 
                 {% endfor %}
                
-
             </div>
             </ul>
         
@@ -182,8 +205,15 @@
 
     </div>  
 
-    <div id="modals-here"> </div>
+    
+
+    <div class="modal" id="myModal">
+        <div id="modals-here"> </div>
+    </div>
+
+
 
 </div>
 
 {% endblock %}
+

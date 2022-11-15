@@ -6,6 +6,7 @@
     background: rgba(238, 238, 238); 
     padding: 1rem; 
 }*/
+/* top function could be deleted later after demo*/
 
 /* header */
 .base-header {
@@ -50,26 +51,78 @@
 
 /* footer */
 .my-footer {
-    background: #eee;
+    background: linear-gradient(to right, #00093c, rgba(0,122,255));
+    color: #fff;
     left: 0px;
     right: 0px;
-    bottom: 0px;
+    bottom: 0;
     width: 100%;
-    height: 200px;
+    min-height: 200px;
+    font-size: 13px;
+    line-height: 20px;
+    padding-top: 10px;
+    padding-left: 20px;
 }
 
+.row {
+    width: 100%;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+}
 
+.col {
+    flex-basis: 25%;
+    padding: 10px;
+}
+
+.my-footer img{
+    width: 40%;
+    margin-bottom: 10px;
+    position: relative;
+    bottom: 50%;
+
+}
+
+ul li {
+    list-style: none;
+    margin-bottom: 12px;
+    /* position: relative;
+    right: 10%; */
+}
+
+ul li a {
+    text-decoration: none;
+    color: white;
+}
+
+.github-icon .fa-brands{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    font-size: 20px;
+    color: #000;
+    background: #fff;
+    margin-right: 15px;
+    cursor: pointer;
+    /* position: relative;    
+    left: 20%; */
+}
 
 /* MODAL STYLE
 --------------------------------------------------------------------------- */
 .my-modal {
     position: absolute;
-    left: 25%;
-    top: 25%;
+    top: 10px;
+    left: 10%;
     z-index: 2;
 
     margin: auto;
-    width: 50%;
+    width: 1000px;
     background-color: white;
     border: 3px solid green;
     padding: 10px;
@@ -150,8 +203,41 @@
 .user_page_bio {
     flex-grow: 4;
     border: solid 1px;
-    padding: 0 1.0rem;
+    padding: 15px;
+    padding-bottom: 5px;
+    position: relative;
 }
+
+.user_page_bio button {
+    position: absolute;
+    bottom: 10px;
+    width: 15%;
+    padding: 3px;
+    color: black;
+    z-index: 1;
+    /* background-color: lightgrey; */
+}
+
+.user_page_bio button::after{
+    content: '';
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,122,255, 0.5);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 200ms ease-in;
+
+}
+
+.user_page_bio button:hover::after{
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+
 .user_pie_chart {
     flex-grow: 1;
     border: solid 1px;
@@ -255,53 +341,46 @@
     column-gap: 1.0rem;
     padding: 1.0rem 0;
 }
+
 .trending-movies {
+    flex: 3 1 75%;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
     display: flex;
-    flex-grow: 3;
     flex-direction: column;
-    padding: 0 1.0rem 1.0rem 1.0rem;
+    padding: 0.0rem 1.0rem 1.0rem 1.0rem;
 }
 .trending-list-header  { 
-    height: 1.5rem;
     font-size: large; 
     font-weight: bold; 
     border-bottom: 1px solid #ddd;
+    padding: 1.0rem 0.0rem 0.0rem 0.0rem;
 }
 .trending-list {
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-around;
-    row-gap: 1.0rem;
-    column-gap: 1.0rem;
-    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    row-gap: 2.0rem;
+    column-gap: 2.0rem;
+    padding: 1.0rem 1.0rem 1.0rem 1.0rem;
+
     text-decoration: none;
-}
-.trending-item {
-    width: 25%;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
-    display: flex;
-    flex-direction: column;
-    padding: 1.0rem 1.0rem 0.0rem 1.0rem;
-    text-decoration: none;
-    color: black;
 }
 
 
 .friends-list {
-    min-width: 15%;
+    min-width: 10%;
+    flex: 1 1 12%;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);
     display: flex;
-    flex-grow: 1;
     flex-direction: column;
     justify-content: flex-start;
     padding: 0 1.0rem;
 }
 .friends-list-header  { 
-    height: 1.5rem;
     font-size: large; 
     font-weight: bold; 
     border-bottom: 1px solid #ddd;
+    padding: 1.0rem 0.0rem 0.0rem 0.0rem;
 }
 .user-friends-list {
     display: flex;
@@ -385,7 +464,7 @@
     right: 15%;
     bottom: 80px;
     width: 80px;
-    background-color: #3e8e41;
+    background-color: rgba(0,122,255);
     float: right;
   }
   
@@ -394,7 +473,7 @@
     display: none;
     position: absolute;
     background-color: #f1f1f1;
-    min-width: 160px;
+    min-width: 300px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
 
@@ -407,15 +486,40 @@
     text-decoration: none;
     display: block;
   }
+
+  #tags {
+    width: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin: 10px auto;
+  }
+
+  .tag {
+    color: black;
+    padding: 10px 15px;
+    background-color: white;
+    border: 2px black solid;
+    border-radius: 50px;
+    margin: 2px;
+    display: inline-block;
+    cursor: pointer;
+    
+  }
   
+  .drop-form {
+    z-index: -1;
+  }
+
   /* Change color of dropdown links on hover */
-  .dropdown-content a:hover {background-color: #ddd;}
+  .tag:hover {background-color: rgba(0,122,255);}
   
   /* Show the dropdown menu on hover */
   .dropdown:hover .dropdown-content {display: block;}
   
   /* Change the background color of the dropdown button when the dropdown content is shown */
-  .dropdown:hover .dropbtn {background-color: #3e8e41;}
+  .dropdown:hover .dropbtn {background-color: rgba(0,0,255);}
 
 
 /* Movie Page

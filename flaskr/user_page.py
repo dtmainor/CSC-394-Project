@@ -1,7 +1,9 @@
-from flask import Flask, render_template, g, request, flash, session
+from flask import Flask, render_template, g, request, flash, session, url_for
 
 from flaskr.db import get_db, close_db
-from flaskr.database.database_functions import get_general_user_statistics, get_general_movie_list
+from flaskr.database.database_functions import get_general_user_statistics, get_general_movie_list, get_relationship, send_friend_request, get_friends_list, update_bio, remove_friend
+
+from flaskr.card_display_controls import watch_list_card
 
 def format_time(time):
     days    = int(time // (24*60))
@@ -51,8 +53,8 @@ def user_page(userID):
     cur.execute( f"SELECT * FROM movies_list_info WHERE owner_id = '{userID}';" )
     user_lists = cur.fetchall()
 
-    cur.close(); db.close()
-    close_db()
+    cur.close()#; db.close()
+    
 
 
     # get general list for stats
@@ -93,7 +95,6 @@ def user_page(userID):
     # -------------------------------------------------------------------------------
     # area for the comparison code
     # -------------------------------------------------------------------------------
-
     '''
     statistics comparison notes:
     -----------------------------
@@ -113,31 +114,44 @@ def user_page(userID):
             top 3 biggest disagreement in rating + their raitng + your rating 
     
     '''
-
     # checks if the current user is logged in
     if g.user != None:
         # look in database/database_functions.py for more info on what this gives
         movie_lists = get_general_movie_list([userID, g.user[0]])
 
-
-
     # prepare the user comparison data for the page
     user_comparison = [ ("Similar Movies",      10),
                         ("Different Movies",    10) ]
-
-
     # -------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------
 
+
+
+
+    # add friend button
+    # ------------------
+    user1        = -1
+    relationship = -1
+    if g.user != None:
+        user1 = g.user[0]
+        relationship = get_relationship(user1, userID)
+
+    friends_button = get_friends_button(user1, userID, relationship)
+
+
+
+    page_info = {   "num_friends"   : len(get_friends_list(userID)),
+                    "user_bio"      : user_bio }
 
     # return the template with all of the information we assembled for display
     return render_template( 'user_page/user_page.html', 
-                            this_user       = this_user, 
+                            this_user       = this_user,
+                            page_info       = page_info, 
                             user_bio        = user_bio,
                             user_lists      = user_lists, 
                             statistics      = statistics, 
-                            user_comparison = user_comparison   )
-
+                            user_comparison = user_comparison,
+                            friends_button  = friends_button       )
 
 
 
@@ -189,66 +203,185 @@ def create_new_list():
 
 
 
-'''      
-sample api output:
--------------------
-{
-   "adult":false,
-   "backdrop_path":"/yzqaKAhglTrkeOfuIXYYArf0WnA.jpg",
-   "belongs_to_collection":{
-      "id":137697,
-      "name":"Finding Nemo Collection",
-      "poster_path":"/ucM59odfzLdQlmtNVAkmiB9Qw3J.jpg",
-      "backdrop_path":"/2hC8HHRUvwRljYKIcQDMyMbLlxz.jpg"
-   },
-   "budget":94000000,
-   "genres":[
-      {
-         "id":16,
-         "name":"Animation"
-      },
-      {
-         "id":10751,
-         "name":"Family"
-      }
-   ],
-   "homepage":"http://movies.disney.com/finding-nemo",
-   "id":12,
-   "imdb_id":"tt0266543",
-   "original_language":"en",
-   "original_title":"Finding Nemo",
-   "overview":"Nemo, an adventurous young clownfish, is unexpectedly taken from his Great Barrier Reef home to a dentist's office aquarium. It's up to his worrisome father Marlin and a friendly but forgetful fish Dory to bring Nemo home -- meeting vegetarian sharks, surfer dude turtles, hypnotic jellyfish, hungry seagulls, and more along the way.",
-   "popularity":144.729,
-   "poster_path":"/eHuGQ10FUzK1mdOY69wF5pGgEf5.jpg",
-   "production_companies":[
-      {
-         "id":3,
-         "logo_path":"/1TjvGVDMYsj6JBxOAkUHpPEwLf7.png",
-         "name":"Pixar",
-         "origin_country":"US"
-      }
-   ],
-   "production_countries":[
-      {
-         "iso_3166_1":"US",
-         "name":"United States of America"
-      }
-   ],
-   "release_date":"2003-05-30",
-   "revenue":940335536,
-   "runtime":100,
-   "spoken_languages":[
-      {
-         "english_name":"English",
-         "iso_639_1":"en",
-         "name":"English"
-      }
-   ],
-   "status":"Released",
-   "tagline":"There are 3.7 trillion fish in the ocean. They're looking for one.",
-   "title":"Finding Nemo",
-   "video":false,
-   "vote_average":7.826,
-   "vote_count":16963
-}
-'''
+
+
+
+
+
+def modal_form_edit_bio():
+    # get current bio
+    current_bio = str(request.form["current_bio"])
+
+    # form controls
+    form_control = {    "hx-post-url"   : url_for("modal_form_edit_bio_receive"),
+                        "hx-target-id"  : "#modal-body"                             }
+    
+    # form header
+    form_header = "Edit Bio"
+
+    # form content
+    form_content = f"<input type='text' name='new_bio' value='{current_bio}'>"
+
+    return render_template( "card_displays/modal_base.html", 
+                            form_control    = form_control, 
+                            form_header     = form_header,
+                            form_content    = form_content      )
+
+
+
+def modal_form_edit_bio_receive():
+    if g.user == None: return "<p> sign-in error </p>"
+
+    new_bio = str(request.form["new_bio"])
+    update_bio(new_bio, g.user[0])
+
+    return f""" <h3> New Bio:  </h3>
+                <p>  {new_bio} </p>
+                <script>            
+                    document.getElementById("user_bio_box").innerHTML = "{new_bio}";
+                </script>
+                """
+
+
+
+
+
+
+def friend_request_button():
+    relationship = int(request.form["relationship"])
+    user1        = int(request.form["user1"])
+    user2        = int(request.form["user2"])
+
+    if relationship == 0:
+        send_friend_request(user1, user2)
+        relationship = 2
+
+    elif relationship == 3:
+        send_friend_request(user1, user2)
+        relationship = 1
+
+    elif relationship == 1:
+        remove_friend(user1, user2)
+        relationship = 0
+
+    return get_friends_button(user1, user2, relationship)
+
+
+
+def get_friends_button(user1, user2, relationship):
+    # -1 = not signed in
+    #  0 = not friends, no requests
+    #  1 = friends
+    #  2 = outgoing friend request
+    #  3 = incoming friend request
+
+    if relationship == -1: 
+        button_text = "Sign in to add friends!"
+        disabled = "disabled"
+
+    elif relationship == 0: 
+        button_text = "Add Friend"
+        disabled = ""
+
+    elif relationship == 1: 
+        button_text = "Remove Friend"
+        disabled = ""
+
+    elif relationship == 2: 
+        button_text = "Friend Request Sent"
+        disabled = "disabled"
+
+    elif relationship == 3: 
+        button_text = "Accept Incoming Friend Request"
+        disabled = ""
+
+    else:
+        button_text = "problem"
+        disabled = "disabled"
+
+
+    button_html = f"""
+        <form   id="add-friend"
+                hx-post="{ url_for('friend_request_button') }"
+                hx-target="#add-friend"
+                hx-swap="innerHTML"
+            >
+            <input type="hidden" name="relationship"    value="{ relationship }">
+            <input type="hidden" name="user1"           value="{ user1 }">
+            <input type="hidden" name="user2"           value="{ user2 }">
+
+            <button type="submit" { disabled }> { button_text } </button>
+        </form>
+        """
+    return button_html
+
+
+
+
+
+def modal_form_create_watch_list():
+    # form controls
+    form_control = {    "hx-post-url"   : url_for('modal_form_create_watch_list_receive') ,
+                        "hx-target-id"  : "#modal-body"                             }
+    
+    # form header
+    form_header = "Create New Watch List "
+
+    # form content
+    form_content = f"""
+                    <div id="create-new-list-form">
+
+                        <label for="new-list-title"> Title: </label>
+                        <input type="text" id="new-list-title" name="new-list-title" required>
+
+                        <label for="new-list-description"> Description: </label>
+                        <input type="text" id="new-list-description" name="new-list-description"  required>
+
+                        <input type="hidden" name="userID" value="{ g.user[0] }">
+
+                    </div>
+                    """
+
+    return render_template( "card_displays/modal_base.html", 
+                            form_control    = form_control, 
+                            form_header     = form_header,
+                            form_content    = form_content      )
+
+
+
+def modal_form_create_watch_list_receive():
+    if g.user == None: return "<p> sign-in error </p>"
+
+    # get new data
+    new_title   = str(request.form["new-list-title"])
+    new_desc    = str(request.form["new-list-description"])
+    userID      = int(request.form["userID"])
+
+    db = get_db(); cur = db.cursor()
+
+    cur.execute( f"INSERT INTO movies_list_info (owner_id, list_name, list_description) VALUES ({userID}, '{new_title}', '{new_desc}') RETURNING *;" )
+    db.commit()
+    new_list = cur.fetchone()
+    
+    cur.close()#; db.close()
+
+    temp = watch_list_card(new_list[0])
+    print(temp)
+
+    # also include js in the return to insert the new watch list into the watch list div
+    return f""" {temp} """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -41,8 +41,10 @@ def create_app(test_config=None):
 
     # CARD DISPLAYS
     # ---------------------------------------------
-    from . import card_displays
-    app.jinja_env.globals.update(watch_list_card = card_displays.watch_list_card)
+    from . import card_display_controls
+    app.jinja_env.globals.update(movie_card             = card_display_controls.movie_card              )
+    app.jinja_env.globals.update(watch_list_card        = card_display_controls.watch_list_card         )
+    app.jinja_env.globals.update(watch_list_movie_card  = card_display_controls.watch_list_movie_card   )
 
 
     # ALL OFFICIAL PAGES
@@ -51,7 +53,13 @@ def create_app(test_config=None):
     app.add_url_rule('/index', methods=('GET', 'POST'), view_func=index.index)
 
     from . import home_page
-    app.add_url_rule('/', methods=('GET', 'POST'), view_func=home_page.home_page)
+    app.add_url_rule('/',                   methods=('GET', 'POST'), view_func=home_page.home_page)
+    app.add_url_rule('/home_page_search',   methods=('GET', 'POST'), view_func=home_page.home_filter_tags)
+    app.add_url_rule('/new_trending_list',  methods=('GET', 'POST'), view_func=home_page.new_trending_list)
+
+    app.add_url_rule('/modal_form_add_friends',     methods=['POST'], view_func=home_page.modal_form_add_friends)
+    app.add_url_rule('/modal_form_resolve_request', methods=['POST'], view_func=home_page.modal_form_resolve_request)
+    
 
     from . import movie_page
     app.add_url_rule('/movie_page/<movieID>', methods=('GET', 'POST'), view_func=movie_page.movie_page)
@@ -62,12 +70,20 @@ def create_app(test_config=None):
     app.add_url_rule('/user/modal',             methods=('GET', 'POST'), view_func=user_page.new_list_modal)
     app.add_url_rule('/user/create_new_list',   methods=('GET', 'POST'), view_func=user_page.create_new_list)
 
+    app.add_url_rule('/user/friend_request_button',         methods=['POST'], view_func=user_page.friend_request_button)
+    app.add_url_rule('/user/modal_form_edit_bio',           methods=['POST'], view_func=user_page.modal_form_edit_bio)
+    app.add_url_rule('/user/modal_form_edit_bio_receive',   methods=['POST'], view_func=user_page.modal_form_edit_bio_receive)
+
+    app.add_url_rule('/user/modal_form_create_watch_list',         methods=['POST'], view_func=user_page.modal_form_create_watch_list)
+    app.add_url_rule('/user/modal_form_create_watch_list_receive', methods=['POST'], view_func=user_page.modal_form_create_watch_list_receive)
+
     from . import watch_list
     app.add_url_rule('/watch_list/<listID>',                methods=('GET', 'POST'), view_func=watch_list.watch_list)
     app.add_url_rule('/watch_list/modal',                   methods=('GET', 'POST'), view_func=watch_list.add_movie_modal)
     app.add_url_rule('/watch_list/get_movie_cards',         methods=('GET', 'POST'), view_func=watch_list.get_movie_cards)
     app.add_url_rule('/watch_list/show_user_input_form',    methods=('GET', 'POST'), view_func=watch_list.show_user_input_form)
     app.add_url_rule('/watch_list/movie_added_htmx',        methods=('GET', 'POST'), view_func=watch_list.movie_added2)
+
 
     from . import view_database
     app.add_url_rule('/api_testing/preview_database',        methods=('GET', 'POST'), view_func=view_database.preview_database)
