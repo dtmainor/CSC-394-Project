@@ -4,8 +4,30 @@ from flask import Flask, render_template, g, request, flash
 #from flaskr.db import get_database_connection
 from flaskr.db import get_db
 
-from flaskr.movieDBapi import api_query, genre_query
-from flaskr.database.database_functions import add_movie_to_list, genres_string
+from flaskr.movieDBapi import api_query
+from flaskr.database.database_functions import add_movie_to_list, genres_string, get_watch_list_statistics
+
+
+def format_time(time):
+    days    = int(time // (24*60))
+    hours   = int((time-(days*24)) // 60)
+    minutes = int(time-((days*24*60)+(hours*60)))
+
+    formatted_time = ""
+    if days > 0: 
+        formatted_time += f"{days:2}d "
+        formatted_time += f"{hours:2}h "
+        formatted_time += f"{minutes:2}m"
+        return formatted_time
+
+    elif hours > 0:
+        formatted_time += f"{hours:2}h "
+        formatted_time += f"{minutes:2}m"
+        return formatted_time
+
+    else:
+        formatted_time += f"{minutes:2}m"
+        return formatted_time
 
 
 
@@ -69,10 +91,44 @@ def watch_list(listID):
 
         display_list.append(movie_display)
 
-    cur.close(); db.close()
+    cur.close()#; db.close()
 
     user_genres_string = genres_string( listID )
     print(user_genres_string)
+
+
+
+    # get general list for stats
+    # ---------------------------
+    general_lists           = get_watch_list_statistics( listID )
+    general_list_info       = general_lists[0]
+    general_list_statistics = general_lists[1]
+
+    plan_to_watch       = general_list_info[10]   
+    currently_watching  = (general_list_info[9] - (general_list_info[10] + general_list_info[11]))
+    finished            = general_list_info[11]  
+    total_movies        = int(general_list_statistics[1])
+    total_watch_time    = format_time(general_list_statistics[2])
+    total_budget        = f"${general_list_statistics[3]:,}"
+
+    if total_movies == 0:
+        average_watch_time  = "--"
+        average_budget      = "--"
+    else:
+        average_watch_time  = format_time((round((general_list_statistics[2]/total_movies),2)))
+        average_budget      = f"${round((general_list_statistics[3]/total_movies),2):,}"
+
+    # prepare stats
+    # --------------
+    statistics = [  ("Total Movies Added:", total_movies            ),
+                    ("Total Runtime:",      total_watch_time        ), 
+                    ("Average Runtime:",    average_watch_time      ),
+                    ("Total Budget:",       total_budget            ), 
+                    ("Average Budget:",     average_budget          ),  
+                    ("Movies Completed:",   finished                ), 
+                    ("Currently Watching:", currently_watching      ), 
+                    ("Plan to Watch:",      plan_to_watch           )   ] 
+
 
 
     return render_template( 'watch_list/watch_list.html', 
@@ -80,7 +136,8 @@ def watch_list(listID):
                             owner_username  = list_owner[1], 
                             movies_list     = display_list, 
                             listID          = listID,
-                            genres_string   = user_genres_string)
+                            statistics      = statistics,
+                            user_genres     = user_genres_string)
 
 
 
@@ -166,10 +223,10 @@ def show_user_input_form():
     return 
 
 
-
+'''
 # app.add_url_rule('/watch_list/movie_added_htmx', methods=('GET', 'POST'), view_func=watch_list.movie_added)
 def movie_added():
-    '''
+    
     Receiving:
         * movie info
         * userID (can use to make sure the user has permissions to modify this list)
@@ -195,7 +252,7 @@ def movie_added():
             UPDATE movies SET popularity = popularity + 1 WHERE id = '{f_movie_id}';
     ")
     
-    '''
+    
     # create the new watch list
     if request.method == 'POST':
         # get form data
@@ -220,7 +277,7 @@ def movie_added():
         cur.execute(f"INSERT INTO movies_list (movie_id, list_id, status, rating) VALUES ('{f_movie_id}', '{listID}', '{watch_status}', '{rating}');")
         db.commit()
         
-        cur.close(); db.close()
+        cur.close()#; db.close()
 
         # convert watch status into a string
         str_watch_status = ""
@@ -233,7 +290,7 @@ def movie_added():
         return render_template('watch_list/movie_added_htmx.html', movie=movie, watch_status=str_watch_status, rating=rating)
 
     return "<h1> this should not return </h1>"
-
+'''
 
 
 def movie_added2():
@@ -329,18 +386,6 @@ def watch_list_edit_movie_htmx():
 
     return
 
-
-
-def test_modal():
-
-    if request.method == 'POST':
-        # get form data
-        list_id          = int (request.form["list_id"      ])
-        card_info        = eval(request.form["card_info"    ])
-
-    
-
-    return
 
 
 
